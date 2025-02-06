@@ -72,7 +72,18 @@ import * as AuthActions from '../../../../store/actions/auth.actions';
               </label>
               <div class="mt-1">
                 <input id="address" type="text" formControlName="address"
-                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500">
+                       class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500">
+              </div>
+            </div>
+
+            <!-- City -->
+            <div>
+              <label for="city" class="block text-sm font-medium text-gray-700">
+                City
+              </label>
+              <div class="mt-1">
+                <input id="city" type="text" formControlName="city"
+                       class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500">
               </div>
             </div>
 
@@ -96,6 +107,15 @@ import * as AuthActions from '../../../../store/actions/auth.actions';
                 <input id="birthDate" type="date" formControlName="birthDate"
                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500">
               </div>
+            </div>
+
+            <!-- Collector Checkbox -->
+            <div class="flex items-center">
+              <input id="isCollector" type="checkbox" formControlName="isCollector"
+                     class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+              <label for="isCollector" class="ml-2 block text-sm text-gray-900">
+                Register as a Collector
+              </label>
             </div>
 
             <div>
@@ -137,14 +157,17 @@ export class RegisterComponent implements OnInit {
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
       address: ['', Validators.required],
+      city: ['', Validators.required],
       phone: ['', Validators.required],
-      birthDate: ['', Validators.required]
+      birthDate: ['', Validators.required],
+      isCollector: [false]
     });
   }
 
   ngOnInit(): void {}
 
   onSubmit(): void {
+    console.log(this.registerForm);
     if (this.registerForm.valid) {
       this.store.dispatch(AuthActions.register({ user: this.registerForm.value }));
     }

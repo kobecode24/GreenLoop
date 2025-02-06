@@ -47,41 +47,41 @@ import { environment } from '../../../environments/environment';
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
                 <thead>
-                  <tr>
-                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Points
-                    </th>
-                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Voucher Code
-                    </th>
-                  </tr>
+                <tr>
+                  <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Points
+                  </th>
+                  <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Voucher Code
+                  </th>
+                </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                  <tr *ngFor="let transaction of transactions$ | async">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{transaction.createdAt | date:'medium'}}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{transaction.points}}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{transaction.amount}} Dh
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                      {{transaction.code}}
-                    </td>
-                  </tr>
-                  <tr *ngIf="(transactions$ | async)?.length === 0">
-                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">
-                      No transactions yet
-                    </td>
-                  </tr>
+                <tr *ngFor="let transaction of transactions$ | async">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{transaction.createdAt | date:'medium'}}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{transaction.points}}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{transaction.amount}} Dh
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                    {{transaction.code}}
+                  </td>
+                </tr>
+                <tr *ngIf="(transactions$ | async)?.length === 0">
+                  <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                    No transactions yet
+                  </td>
+                </tr>
                 </tbody>
               </table>
             </div>
@@ -133,6 +133,8 @@ export class PointsComponent implements OnInit {
   ) {
     this.currentUser$ = this.authService.currentUser$;
     this.transactions$ = new Observable();
+
+    // Initialize conversion options from environment
     const voucherConversion = environment.voucherConversion as Record<string, number>;
     this.conversionOptions = Object.entries(voucherConversion).map(([points, amount]) => ({
       points: Number(points),
