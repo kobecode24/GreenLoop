@@ -12,6 +12,12 @@ export interface CollectorStats {
   pendingCollections: number;
   totalWeight: number;
 }
+const wasteTypeMapping: { [key: string]: string } = {
+  'Plastique': 'plastic',
+  'Verre': 'glass',
+  'Papier': 'paper',
+  'Métal': 'metal'
+};
 
 @Injectable({
   providedIn: 'root'
@@ -112,9 +118,15 @@ export class CollectorService {
     const request = requests[requestIndex];
     let totalPoints = 0;
     for (const item of request.wasteItems) {
-      const pointsPerKg = environment.pointsConfig[item.type.toLowerCase()];
+      const englishType = wasteTypeMapping[item.type];
+      if (!englishType) {
+        console.error(`No mapping found for waste type: ${item.type}`);
+        continue;
+      }
+
+      const pointsPerKg = environment.pointsConfig[englishType];
       if (!pointsPerKg) {
-        console.error(`No points configuration found for waste type: ${item.type}`);
+        console.error(`No points configuration found for waste type: ${englishType}`);
         continue;
       }
       const itemWeightRatio = item.weight / request.totalWeight;
@@ -123,6 +135,7 @@ export class CollectorService {
       totalPoints += itemPoints;
 
       console.log(`Points calculation for ${item.type}:`, {
+        englishType,
         pointsPerKg,
         itemWeight: item.weight,
         totalWeight: request.totalWeight,
@@ -140,9 +153,6 @@ export class CollectorService {
       return throwError(() => new Error('User not found'));
     }
     const user = users[userIndex];
-    if (!user) {
-      return throwError(() => new Error('User not found'));
-    }
     user.points = (user.points || 0) + totalPoints;
     localStorage.setItem(environment.localStorage.usersKey, JSON.stringify(users));
     const updatedRequest = {
