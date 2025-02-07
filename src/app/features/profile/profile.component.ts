@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import {Observable, take} from 'rxjs';
 import { User } from '../../shared/models/user.model';
 import * as AuthActions from '../../store/actions/auth.actions';
+import {AuthService} from "../../core/services/auth.service";
 
 @Component({
   selector: 'app-profile',
@@ -212,15 +213,17 @@ export class ProfileComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private store: Store<{ auth: { user: User | null } }>,
+    private authService: AuthService
   ) {
-    this.currentUser$ = this.store.select(state => state.auth.user);
+
+    this.currentUser$ = this.authService.currentUser$;
 
     this.profileForm = this.fb.group({
       id: [''],
       email: ['', [Validators.required, Validators.email]],
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      phone: ['', Validators.required],
+      firstName: ['', [Validators.required]],
+      lastName: ['', [Validators.required]],
+      phone: ['', [Validators.required]],
       birthDate: ['', Validators.required],
       address: ['', Validators.required],
       city: ['', Validators.required],
@@ -231,21 +234,27 @@ export class ProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.currentUser$.subscribe(user => {
+    this.authService.currentUser$.subscribe(user => {
       if (user) {
-        this.profileForm.patchValue({
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          phone: user.phone,
-          birthDate: this.formatDate(user.birthDate),
-          address: user.address,
-          city: user.city,
-          profilePhoto: user.profilePhoto,
-          points: user.points,
-          isCollector: user.isCollector
+
+        const birthDate = user.birthDate ? new Date(user.birthDate).toISOString().split('T')[0] : '';
+
+        this.profileForm.setValue({
+          id: user.id || '',
+          email: user.email || '',
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          phone: user.phone || '',
+          birthDate: birthDate,
+          address: user.address || '',
+          city: user.city || '',
+          profilePhoto: user.profilePhoto || '',
+          points: user.points || 0,
+          isCollector: user.isCollector || false
         });
+
+        this.profileForm.markAsPristine();
+        this.profileForm.markAsUntouched();
       }
     });
   }
@@ -266,6 +275,12 @@ export class ProfileComponent implements OnInit {
   onPhotoSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size should not exceed 5MB');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = () => {
         this.profileForm.patchValue({
@@ -284,9 +299,21 @@ export class ProfileComponent implements OnInit {
 
   onSubmit(): void {
     if (this.profileForm.valid) {
+      const updatedUser = {
+        ...this.profileForm.value,
+        birthDate: new Date(this.profileForm.value.birthDate),
+        updatedAt: new Date()
+      };
+
       this.store.dispatch(AuthActions.updateProfile({
-        user: this.profileForm.value
+        user: updatedUser
       }));
+    } else {
+
+      Object.keys(this.profileForm.controls).forEach(key => {
+        const control = this.profileForm.get(key);
+        control?.markAsTouched();
+      });
     }
   }
 
@@ -295,13 +322,12 @@ export class ProfileComponent implements OnInit {
   }
 
   deleteAccount(): void {
-    this.store.select(state => state.auth.user?.id)
-      .subscribe(userId => {
-        if (userId) {
-          this.store.dispatch(AuthActions.deleteAccount({ userId }));
-        }
-      })
-      .unsubscribe();
+
+    this.authService.currentUser$.pipe(take(1)).subscribe(user => {
+      if (user?.id) {
+        this.store.dispatch(AuthActions.deleteAccount({ userId: user.id }));
+      }
+    });
     this.showDeleteModal = false;
   }
 }

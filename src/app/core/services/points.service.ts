@@ -39,6 +39,7 @@ export class PointsService {
         if ((user.points ?? 0) < points) {
           return throwError(() => new Error('Insufficient points'));
         }
+
         const users = this.getUsers();
         const userIndex = users.findIndex(u => u.id === user.id);
         if (userIndex === -1) {
@@ -47,6 +48,11 @@ export class PointsService {
 
         users[userIndex].points = (users[userIndex].points ?? 0) - points;
         localStorage.setItem(environment.localStorage.usersKey, JSON.stringify(users));
+
+        const updatedUser = { ...user, points: users[userIndex].points };
+        localStorage.setItem(environment.localStorage.userKey, JSON.stringify(updatedUser));
+        this.authService.currentUserSubject.next(updatedUser);
+
         const transaction: VoucherTransaction = {
           id: Date.now().toString(),
           userId: user.id ?? '',
